@@ -12,6 +12,9 @@ from sklearn.metrics import (
     confusion_matrix,
 )
 
+# ---------------------------------------------------------
+# PAGE CONFIGURATION
+# ---------------------------------------------------------
 st.set_page_config(
     page_title="Predictive Maintenance AI",
     page_icon="⚙️",
@@ -19,6 +22,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ---------------------------------------------------------
+# CUSTOM STYLING
+# ---------------------------------------------------------
 st.markdown(
     """
     <style>
@@ -47,6 +53,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ---------------------------------------------------------
+# HEADER
+# ---------------------------------------------------------
 st.markdown(
     '<div class="main-title">⚙️ Predictive Maintenance AI</div>',
     unsafe_allow_html=True,
@@ -61,6 +70,9 @@ st.info(
     "from the project notebook using synthetic IoT sensor data."
 )
 
+# ---------------------------------------------------------
+# CREATE DATASET
+# ---------------------------------------------------------
 np.random.seed(42)
 
 timestamps = pd.date_range(
@@ -101,6 +113,9 @@ df = pd.DataFrame(
     }
 )
 
+# ---------------------------------------------------------
+# FEATURE ENGINEERING
+# ---------------------------------------------------------
 df = df.sort_values("Timestamp")
 
 df["Temp_Rolling_Mean_12h"] = (
@@ -123,6 +138,9 @@ df["Failure_In_24_Hours"] = (
     df["Failure_In_24_Hours"].astype(int)
 )
 
+# ---------------------------------------------------------
+# FEATURES AND TARGET
+# ---------------------------------------------------------
 features = [
     "Sensor Temp C",
     "Sensor Vibration mm",
@@ -134,6 +152,9 @@ features = [
 X = df[features]
 y = df["Failure_In_24_Hours"]
 
+# ---------------------------------------------------------
+# CHRONOLOGICAL TRAIN / TEST SPLIT
+# ---------------------------------------------------------
 split_index = int(len(df) * 0.80)
 
 X_train = X.iloc[:split_index]
@@ -142,6 +163,9 @@ X_test = X.iloc[split_index:]
 y_train = y.iloc[:split_index]
 y_test = y.iloc[split_index:]
 
+# ---------------------------------------------------------
+# RANDOM FOREST MODEL
+# ---------------------------------------------------------
 model = RandomForestClassifier(
     n_estimators=100,
     class_weight="balanced",
@@ -150,6 +174,9 @@ model = RandomForestClassifier(
 
 model.fit(X_train, y_train)
 
+# ---------------------------------------------------------
+# SIDEBAR
+# ---------------------------------------------------------
 st.sidebar.header("⚙️ Prediction Settings")
 
 threshold = st.sidebar.slider(
@@ -166,12 +193,18 @@ st.sidebar.caption("Predictive Maintenance AI")
 st.sidebar.caption("Random Forest • IoT Sensor Analytics")
 st.sidebar.caption("Synthetic dataset")
 
+# ---------------------------------------------------------
+# PREDICTIONS
+# ---------------------------------------------------------
 y_prob = model.predict_proba(X_test)[:, 1]
 
 y_pred = (
     y_prob >= threshold
 ).astype(int)
 
+# ---------------------------------------------------------
+# MODEL PERFORMANCE
+# ---------------------------------------------------------
 accuracy = accuracy_score(y_test, y_pred)
 
 precision = precision_score(
@@ -192,6 +225,9 @@ f1 = f1_score(
     zero_division=0,
 )
 
+# ---------------------------------------------------------
+# TOP KPI CARDS
+# ---------------------------------------------------------
 st.subheader("📊 Model Performance")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -213,6 +249,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ---------------------------------------------------------
+# CURRENT RISK STATUS
+# ---------------------------------------------------------
 latest_probability = float(y_prob[-1])
 latest_timestamp = df.iloc[split_index + len(y_prob) - 1]["Timestamp"]
 
@@ -242,8 +281,12 @@ st.caption(
     f"Latest test observation: {latest_timestamp:%Y-%m-%d %H:%M}"
 )
 
+# ---------------------------------------------------------
+# SENSOR OVERVIEW
+# ---------------------------------------------------------
 st.subheader("📈 Sensor Overview")
 
+# Downsample only for visualization so the charts remain readable.
 chart_df = df.iloc[::10].copy()
 
 col1, col2 = st.columns(2)
@@ -278,6 +321,9 @@ with col2:
     st.pyplot(fig)
     plt.close(fig)
 
+# ---------------------------------------------------------
+# VOLTAGE
+# ---------------------------------------------------------
 st.subheader("⚡ Voltage Monitoring")
 
 fig, ax = plt.subplots(figsize=(12, 3.8))
@@ -294,6 +340,9 @@ fig.tight_layout()
 st.pyplot(fig)
 plt.close(fig)
 
+# ---------------------------------------------------------
+# FAILURE PROBABILITY
+# ---------------------------------------------------------
 st.subheader("🎯 Predicted Failure Probability")
 
 probability_df = pd.DataFrame(
@@ -328,6 +377,9 @@ fig.tight_layout()
 st.pyplot(fig)
 plt.close(fig)
 
+# ---------------------------------------------------------
+# FEATURE IMPORTANCE + CONFUSION MATRIX
+# ---------------------------------------------------------
 left, right = st.columns(2)
 
 with left:
@@ -387,6 +439,9 @@ with right:
     st.pyplot(fig)
     plt.close(fig)
 
+# ---------------------------------------------------------
+# PREDICTION RESULTS
+# ---------------------------------------------------------
 st.subheader("📋 Recent Prediction Results")
 
 results = X_test.copy()
@@ -403,6 +458,9 @@ st.dataframe(
     height=360,
 )
 
+# ---------------------------------------------------------
+# BUSINESS RECOMMENDATION
+# ---------------------------------------------------------
 st.subheader("💡 Maintenance Recommendation")
 
 st.write(
@@ -420,6 +478,9 @@ st.warning(
     "IoT data before deployment."
 )
 
+# ---------------------------------------------------------
+# FOOTER
+# ---------------------------------------------------------
 st.markdown("---")
 
 st.caption(
